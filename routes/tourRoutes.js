@@ -6,22 +6,38 @@ const {
   getTour,
   updateTour,
   deleteTour,
-  checkId,
-  checkBody,
+  aliasTopTours,
+  getTourStats,
+  getMonthlyPlan,
 } = require('../controllers/tourController');
+
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-router.param('id', checkId);
+// router.param('id', checkId);
 
 // Creat a checkbody middleware
 // Check if body contains the name and price property
 // If not, send back 400(bad request)
 // Add it to the post handler stack
 
-router.route('/').get(getAllTours).post(checkBody, createTour);
+router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 
-router.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+router.route('/tour-stats').get(getTourStats);
+router.route('/monthly-plan/:year').get(getMonthlyPlan);
+
+router.route('/').get(authController.protect, getAllTours).post(createTour);
+
+router
+  .route('/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    deleteTour,
+  );
 
 module.exports = router;
 

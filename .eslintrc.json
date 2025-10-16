@@ -7,6 +7,7 @@
     }
   },
   "rules": {
+    "arrow-body-style": "off",
     "prettier/prettier": ["error", { "endOfLine": "auto" }],
     "node/no-unsupported-features/es-syntax": "off",
     "spaced-comment": "off",
