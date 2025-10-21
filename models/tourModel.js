@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -78,6 +79,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // guides: Array, Embedding example
+
+    // Child referencing example
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
+    // reviews: [{ type: mongoose.Schema.ObjectId, ref: 'Review' }],
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
@@ -86,12 +121,29 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate
+tourSchema.virtual('reviews', {
+  // 👉 Tên của model muốn liên kết (model 'Review')
+  ref: 'Review',
+  // 👉 Trường trong model 'Review' chứa khóa ngoại (foreign key)
+  foreignField: 'tour',
+  // 👉 Trường trong model 'Tour' được dùng làm khóa chính (local key)
+  localField: '_id',
+});
+
 // DOCUMENT MIDDLEWARE: runs before .save() and .creat()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
-
+/*
+// Embedding example
+tourSchema.pre('save', async function (next) {
+  const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+  this.guides = await Promise.all(guidesPromises);
+  next();
+});
+*/
 // tourSchema.pre('save', function (next) {
 //   console.log('Will save document...');
 //   next();
@@ -108,6 +160,15 @@ tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
 
   this.start = Date.now();
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
+
   next();
 });
 
