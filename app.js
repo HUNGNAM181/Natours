@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -11,13 +12,50 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // 1) GLOBAL MIDDLEWARES
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(`${__dirname}/public`)); // Middleware to serve
 
 // Set security HTTP headers
-app.use(helmet());
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: false,
+//   }),
+// );
+
+// Further HELMET configuration for Security Policy (CSP)
+const scriptSrcUrls = ['https://unpkg.com/', 'https://tile.openstreetmap.org'];
+const styleSrcUrls = [
+  'https://unpkg.com/',
+  'https://tile.openstreetmap.org',
+  'https://fonts.googleapis.com/',
+];
+const connectSrcUrls = ['https://unpkg.com', 'https://tile.openstreetmap.org'];
+const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+
+//set security http headers
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: [],
+      connectSrc: ["'self'", ...connectSrcUrls],
+      scriptSrc: ["'self'", ...scriptSrcUrls],
+      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+      workerSrc: ["'self'", 'blob:'],
+      objectSrc: [],
+      imgSrc: ["'self'", 'blob:', 'data:', 'https:'],
+      fontSrc: ["'self'", ...fontSrcUrls],
+    },
+  }),
+);
 
 // Development logging
 // console.log(process.env.NODE_ENV);
@@ -53,12 +91,10 @@ app.use(
       'maxGroupSize',
       'price',
       'difficulty',
+      'reviews',
     ],
   }),
 );
-
-// Serving static files
-app.use(express.static(`${__dirname}/public`)); // Middleware to serve
 
 // app.use((req, res, next) => {
 //   console.log('Hello from the middleware');
@@ -75,6 +111,8 @@ app.use((req, res, next) => {
 
 // 2) ROUTE HANDLERS
 // 3) ROUTES
+
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);

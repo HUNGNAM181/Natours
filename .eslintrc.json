@@ -7,6 +7,10 @@
     }
   },
   "rules": {
+    "prefer-arrow-callback": [
+      "error",
+      { "allowNamedFunctions": true, "allowUnboundThis": true }
+    ],
     "arrow-body-style": "off",
     "prettier/prettier": ["error", { "endOfLine": "auto" }],
     "node/no-unsupported-features/es-syntax": "off",

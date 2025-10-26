@@ -830,6 +830,7 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  justify-content: flex-end;
 }
 .footer__nav li {
   margin-left: 1.5rem;
@@ -1070,7 +1071,7 @@ body {
 }
 
 .card-container {
-  max-width: 120rem;
+  max-width: 135rem;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
