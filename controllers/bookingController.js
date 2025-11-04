@@ -1,6 +1,7 @@
 const Tour = require('../models/tourModel');
 const Booking = require('../models/bookingModel');
 const vnpay = require('../utils/vnpay');
+const factory = require('./handlerFactory');
 
 // ==========================================
 // 1️⃣ TẠO PAYMENT URL
@@ -164,24 +165,24 @@ exports.vnpayReturn = async (req, res) => {
     );
 
     // Nếu thất bại, redirect với payment=fail
-    // return res.redirect(
-    //   `${process.env.APP_URL}/?payment=fail&orderId=${encodeURIComponent(vnp_TxnRef || '')}`,
-    // );
+    return res.redirect(
+      `${process.env.APP_URL}/?payment=fail&orderId=${encodeURIComponent(vnp_TxnRef || '')}`,
+    );
 
-    return res.render('paymentFail', {
-      error:
-        vnp_ResponseCode === '24'
-          ? 'Bạn đã hủy giao dịch.'
-          : `Thanh toán thất bại. Mã lỗi: ${vnp_ResponseCode}`,
-    });
+    // return res.render('paymentFail', {
+    //   error:
+    //     vnp_ResponseCode === '24'
+    //       ? 'Bạn đã hủy giao dịch.'
+    //       : `Thanh toán thất bại. Mã lỗi: ${vnp_ResponseCode}`,
+    // });
   } catch (err) {
     console.error('❌ Return URL processing error:', err);
     // redirect cũng trong trường hợp lỗi để user quay lại trang chính
-    // return res.redirect(`${process.env.APP_URL}/?payment=fail`);
+    return res.redirect(`${process.env.APP_URL}/?payment=fail`);
 
-    return res.render('paymentFail', {
-      error: 'Lỗi hệ thống. Vui lòng thử lại.',
-    });
+    // return res.render('paymentFail', {
+    //   error: 'Lỗi hệ thống. Vui lòng thử lại.',
+    // });
   }
 };
 
@@ -223,3 +224,11 @@ exports.vnpayIpn = async (req, res) => {
     res.json({ RspCode: '99', Message: 'Unknown error' });
   }
 };
+
+//  4️⃣ CRUD CHUẨN CHO ADMIN
+// ==========================================
+exports.getAllBookings = factory.getAll(Booking);
+exports.getBooking = factory.getOne(Booking);
+exports.createBooking = factory.createOne(Booking);
+exports.updateBooking = factory.updateOne(Booking);
+exports.deleteBooking = factory.deleteOne(Booking);
